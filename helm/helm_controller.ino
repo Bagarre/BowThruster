@@ -1,3 +1,31 @@
+/*
+ * ---------------------------------------------------------------
+ * Helm Remote Control Sender (Helm Feather)
+ * ---------------------------------------------------------------
+ * Description:
+ *   Reads helm control buttons and sends corresponding CAN bus
+ *   commands to the Bow Feather controller. Mirrors system status
+ *   with a status LED and buzzer based on received CAN messages.
+ *
+ * Features:
+ *   - Momentary button detection (Power, Left, Right, Up, Down)
+ *   - CAN bus heartbeat transmission every 50ms
+ *   - LED status: Solid for armed, flashing for low voltage
+ *   - Beeper activation in response to CAN messages
+ *
+ * CAN Messaging:
+ *   - 0x100: Power (armed/disarmed) [Out]
+ *   - 0x110: Bow thruster direction command [Out]
+ *   - 0x120: Windlass up/down command [Out]
+ *   - 0x200: System status (armed/low voltage) [In]
+ *   - 0x210: Beeper control [In]
+ *
+ * Author: David Ross
+ * Date: 26 April 2025
+ * Version: 1.0
+ * License: MIT
+ * ---------------------------------------------------------------
+ */
 
 
 

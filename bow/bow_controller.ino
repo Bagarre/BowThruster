@@ -1,10 +1,32 @@
 /*
  * ---------------------------------------------------------------
- * Bow Thruster + Windlass Controller with CAN
+ * Bow Thruster + Windlass Controller (Bow Feather)
  * ---------------------------------------------------------------
+ * Description:
+ *   Directly controls bow thruster and windlass relays.
+ *   Merges physical button inputs with CAN bus commands.
+ *   Manages system arming, solenoid control, voltage monitoring,
+ *   automatic lockout, and beeper/status feedback over CAN.
+ *
+ * Features:
+ *   - Local button and remote CAN control
+ *   - Solenoid enable output tied to arm status
+ *   - Auto shutdown timers and lockout protections
+ *   - Low voltage auto-disarm
+ *   - Status reporting over CAN (Armed / Low Voltage)
+ *   - Beeper activation via CAN
+ *
+ * CAN Messaging:
+ *   - 0x100: Power (armed/disarmed) [In]
+ *   - 0x110: Bow thruster direction [In]
+ *   - 0x120: Windlass up/down command [In]
+ *   - 0x200: Status update (armed/low voltage) [Out]
+ *   - 0x210: Beeper control [Out]
+ *
  * Author: David Ross
  * Date: 26 April 2025
- * Version: 0.1.0
+ * Version: 1.0
+ * License: MIT
  * ---------------------------------------------------------------
  */
 
