@@ -29,6 +29,8 @@
  * License: MIT
  * ---------------------------------------------------------------
  */
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #include <FlexCAN_T4.h>
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
@@ -36,21 +38,28 @@ FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
 // =========================
 // CONFIGURATION
 // =========================
-#define POWER_BUTTON_PIN         11
-#define PORT_BUTTON_PIN           10
-#define STARBOARD_BUTTON_PIN      9
-#define STATUS_LED_PIN            A3
-#define BEEPER_PIN                A4
-#define VOLTAGE_PIN               A0
-#define PORT_OUTPUT_PIN           5
-#define STBD_OUTPUT_PIN           6
 
+#define BATTERY_TEMP_THRESHOLD 60.0 // Celsius
+#define THRUSTER_TEMP_THRESHOLD 70.0 // Celsius
+
+
+#define BEEPER_PIN                A4
+#define STATUS_LED_PIN            A3
+#define BATTERY_TEMP_PIN          A2 // Digital pin for DS18B20
+#define THRUSTER_TEMP_PIN         A1 // Analog pin for TMP36
+#define VOLTAGE_PIN               A0
+
+#define POWER_BUTTON_PIN         11
+#define PORT_BUTTON_PIN          10
+#define STARBOARD_BUTTON_PIN      9
 #define WINDLASS_UP_BUTTON_PIN    8
 #define WINDLASS_DOWN_BUTTON_PIN  7
+#define STBD_OUTPUT_PIN           6
+#define PORT_OUTPUT_PIN           5
 #define WINDLASS_UP_OUTPUT_PIN    4
 #define WINDLASS_DOWN_OUTPUT_PIN  3
-
 #define SOLENOID_ENABLE_PIN       2
+
 
 const float R1 = 10000.0;
 const float R2 = 3300.0;
@@ -114,6 +123,9 @@ unsigned long lastBTRightCANMillis = 0;
 unsigned long lastWindlassUpCANMillis = 0;
 unsigned long lastWindlassDownCANMillis = 0;
 
+OneWire oneWire(BATTERY_TEMP_PIN);
+DallasTemperature batteryTempSensor(&oneWire);
+
 // =========================
 // SETUP
 // =========================
@@ -141,6 +153,8 @@ void setup() {
   digitalWrite(WINDLASS_DOWN_OUTPUT_PIN, LOW);
   digitalWrite(SOLENOID_ENABLE_PIN, LOW);
 
+  batteryTempSensor.begin();
+
   Serial.begin(9600);
   Can0.begin();
   Can0.setBaudRate(250000);
@@ -151,6 +165,7 @@ void setup() {
 // =========================
 void loop() {
   unsigned long now = millis();
+  checkTemperatures();
   updateBeeps();
   processCANMessages();
 
@@ -223,6 +238,34 @@ void processCANMessages() {
     }
   }
 }
+
+
+
+void checkTemperatures() {
+  float batteryTemp = readBatteryTemperature();
+  float thrusterTemp = readThrusterTemperature();
+
+  if (batteryTemp >= BATTERY_TEMP_THRESHOLD || thrusterTemp >= THRUSTER_TEMP_THRESHOLD) {
+    // Disarm system
+    isArmed = false;
+    digitalWrite(SOLENOID_ENABLE_PIN, LOW);
+    // Additional disarm procedures...
+  }
+}
+
+float readBatteryTemperature() {
+  batteryTempSensor.requestTemperatures();
+  return batteryTempSensor.getTempCByIndex(0);
+}
+
+float readThrusterTemperature() {
+  int analogValue = analogRead(THRUSTER_TEMP_PIN);
+  float voltage = analogValue * (5.0 / 1023.0);
+  return (voltage - 0.5) * 100.0; // TMP36 conversion
+}
+
+
+
 
 void startBeeps(int numberOfBeeps, unsigned long onTime, unsigned long offTime, bool longFinalBeep) {
   beeperActive = true;
