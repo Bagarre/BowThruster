@@ -1,7 +1,9 @@
+
+
+
 #include <FlexCAN_T4.h>
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
 
-// Pin definitions
 #define POWER_BUTTON_PIN     11
 #define BT_LEFT_PIN          10
 #define BT_RIGHT_PIN          9
@@ -10,15 +12,12 @@ FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
 #define BEEPER_PIN           A0
 #define STATUS_LED_PIN       A1
 
-// Timing constants
 const unsigned long sendInterval = 50;
 unsigned long lastSendTime = 0;
 
-// Status tracking
 bool systemArmed = false;
 bool voltageLow = false;
 
-// Beep state
 bool beeperActive = false;
 unsigned long beeperTimer = 0;
 int beeperStep = 0;
@@ -57,7 +56,6 @@ void loop() {
     sendWindlassCommand();
   }
 
-  // LED Status Logic
   if (voltageLow) {
     int flash = (millis() / 250) % 2;
     digitalWrite(STATUS_LED_PIN, flash ? HIGH : LOW);
@@ -67,10 +65,6 @@ void loop() {
     digitalWrite(STATUS_LED_PIN, LOW);
   }
 }
-
-// =======================
-// CAN Message Senders
-// =======================
 
 void sendPowerStatus() {
   CAN_message_t msg;
@@ -100,15 +94,10 @@ void sendWindlassCommand() {
   Can0.write(msg);
 }
 
-// =======================
-// CAN Message Receiver
-// =======================
-
 void processIncomingCAN() {
   CAN_message_t msg;
   if (Can0.read(msg)) {
     if (msg.id == 0x210 && msg.len == 4) {
-      // Beeper command from Bow
       int count = msg.buf[0];
       int onTime = msg.buf[1];
       int offTime = msg.buf[2];
@@ -122,10 +111,6 @@ void processIncomingCAN() {
     }
   }
 }
-
-// =======================
-// Beeper Logic
-// =======================
 
 void startBeeps(int numberOfBeeps, unsigned long onTime, unsigned long offTime, bool longFinalBeep) {
   beeperActive = true;
