@@ -260,7 +260,7 @@ float readBatteryTemperature() {
 
 float readThrusterTemperature() {
   int analogValue = analogRead(THRUSTER_TEMP_PIN);
-  float voltage = analogValue * (5.0 / 1023.0);
+  float voltage = analogValue * (3.3 / 1023.0);
   return (voltage - 0.5) * 100.0; // TMP36 conversion
 }
 
