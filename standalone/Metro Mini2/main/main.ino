@@ -32,7 +32,7 @@
 #define BEEPER_PIN           6
 #define PORT_CTRL_PIN        7 //PNP Transistor HIGH is off
 #define STBD_CTRL_PIN        8 //PNP Transistor HIGH is off
-#define BT_VOLTAGE_PIN      A0
+#define BT_VOLTAGE_PIN      A0 // Reads BowThruster voltage
 #define PORT_VOLTAGE_PIN    A1 // Reads collector voltage
 #define STBD_VOLTAGE_PIN    A2 // Reads collector voltage
 
@@ -114,6 +114,7 @@ void loop() {
   handleThrustControl(now);
 
 }
+
 
 void handlePowerButton(unsigned long now) {
   if (digitalRead(POWER_BUTTON_PIN) == LOW) {
@@ -229,23 +230,6 @@ void handleThrustControl(unsigned long now) {
 }
 
 
-/*
-
-//void Alert( string type) {
-
-  Initial power up
-  System Armed
-  System Disarmed
-  Thrust time exceeded
-  Bus Low Voltage
-  Bus Over Voltage
-  Port/Stbd sense pin not what expected
-
-
-
-//}
-*/
-
 void activateDirection(String dir) {
   //TODO Safety checks
   // Use A1/A2 to ensure opposite direction isn't active.
@@ -256,8 +240,11 @@ void activateDirection(String dir) {
   }
   if (dir.equals("port")) {
     digitalWrite(STBD_CTRL_PIN, HIGH);
-//    if (!checkVoltage(BT_VOLTAGE_PIN, LOW_VOLTAGE_THRESHOLD, MAX_VOLTAGE_THRESHOLD)) {
-//TODO verify its off before turning the other on
+    delay(50);
+    if (!checkVoltage(STBD_VOLTAGE_PIN, LOW_VOLTAGE_THRESHOLD, MAX_VOLTAGE_THRESHOLD)) {
+
+
+
 
     digitalWrite(PORT_CTRL_PIN, LOW);
     portActive = true;
@@ -293,8 +280,6 @@ void deactivateThruster(String source) {
 
 
 bool checkVoltage(uint8_t pin, uint8_t minVolts, uint8_t maxVolts){
-// TODO This should be given the pin, over, under
-// TODO return true/false if it's not in that range.
   unsigned long now = millis();
   int raw = analogRead(pin);
   float vout = raw * (REF_VOLTAGE / 1023.0);
@@ -308,8 +293,5 @@ bool checkVoltage(uint8_t pin, uint8_t minVolts, uint8_t maxVolts){
     Serial.println("High voltage detected");
     return false;
   }
-
-
-
   return true;
 }
